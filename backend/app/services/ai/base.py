@@ -1,17 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import TypedDict
 
-
-class AIAnalysisResult(TypedDict):
-    summary: str
-    category: str
-    priority: str
-    confidence: float
-    suggested_reply: str
+from app.schemas.ai import AIAnalysisResponse
 
 
 class AIProvider(ABC):
 
     @abstractmethod
-    async def analyze(self, message: str) -> AIAnalysisResult:
+    async def analyze(
+        self,
+        message: str,
+    ) -> AIAnalysisResponse:
         pass

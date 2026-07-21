@@ -30,11 +30,11 @@ async def analyze_message(db: Session, message_id: int):
         analysis = Analysis(message_id=message.id)
         db.add(analysis)
 
-    analysis.summary = result["summary"]
-    analysis.category = result["category"]
-    analysis.priority = result["priority"]
-    analysis.confidence = result["confidence"]
-    analysis.suggested_reply = result["suggested_reply"]
+    analysis.summary = result.summary
+    analysis.category = result.category
+    analysis.priority = result.priority
+    analysis.confidence = result.confidence
+    analysis.suggested_reply = result.suggested_reply
 
     db.commit()
     db.refresh(analysis)
