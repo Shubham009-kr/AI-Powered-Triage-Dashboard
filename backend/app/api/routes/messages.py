@@ -14,6 +14,11 @@ from app.services.message_service import (
 from app.schemas.analysis import AnalysisResponse
 from app.services.analysis_service import analyze_message
 
+from app.core.exceptions import (
+    AIProviderError,
+    AIResponseParseError,
+)
+
 router = APIRouter(prefix="/messages", tags=["Messages"])
 
 
@@ -43,12 +48,25 @@ async def analyze(
     message_id: int,
     db: Session = Depends(get_db),
 ):
-    analysis = await analyze_message(db, message_id)
+    try:
+        analysis = await analyze_message(db, message_id)
 
-    if analysis is None:
+        if analysis is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Message not found",
+            )
+
+        return analysis
+
+    except AIProviderError as exc:
         raise HTTPException(
-            status_code=404,
-            detail="Message not found",
-        )
+            status_code=502,
+            detail=str(exc),
+        ) from exc
 
-    return analysis
+    except AIResponseParseError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc),
+        ) from exc
