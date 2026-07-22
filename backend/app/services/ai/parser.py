@@ -28,6 +28,11 @@ def parse_ai_response(content: str) -> AIAnalysisResponse:
 
     try:
         data = json.loads(json_string)
+        if "priority" in data:
+            data["priority"] = str(data["priority"]).strip().lower()
+
+        if "category" in data:
+            data["category"] = str(data["category"]).strip().lower()
         return AIAnalysisResponse.model_validate(data)
     except Exception as exc:
         raise AIResponseParseError(

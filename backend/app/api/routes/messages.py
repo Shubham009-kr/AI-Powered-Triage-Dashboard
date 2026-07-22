@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.services.message_service import (
     get_all_messages,
     get_message_by_id,
+    mark_message_as_reviewed,
 )
 
 from app.schemas.analysis import AnalysisResponse
@@ -70,3 +71,18 @@ async def analyze(
             status_code=500,
             detail=str(exc),
         ) from exc
+    
+@router.post("/{message_id}/review", response_model=MessageResponse)
+def review_message(
+    message_id: int,
+    db: Session = Depends(get_db),
+):
+    message = mark_message_as_reviewed(db, message_id)
+
+    if message is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Message not found",
+        )
+
+    return message

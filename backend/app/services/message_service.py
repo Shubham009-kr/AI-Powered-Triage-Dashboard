@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.message import Message
+from datetime import datetime
 
 
 def get_all_messages(db: Session):
@@ -22,3 +23,26 @@ def get_message_by_id(db: Session, message_id: int):
         .filter(Message.id == message_id)
         .first()
     )
+
+def mark_message_as_reviewed(db: Session, message_id: int):
+    """
+    Mark a message as reviewed.
+    """
+
+    message = (
+        db.query(Message)
+        .filter(Message.id == message_id)
+        .first()
+    )
+
+    if message is None:
+        return None
+
+    if message.status != "reviewed":
+        message.status = "reviewed"
+        message.reviewed_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(message)
+
+    return message
