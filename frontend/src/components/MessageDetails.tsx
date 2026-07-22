@@ -2,7 +2,12 @@ import { useMessageStore } from "../store/messageStore";
 import AnalysisPanel from "./AnalysisPanel";
 
 export default function MessageDetails() {
-  const { selectedMessage, analyzeMessage, analysisLoading, } = useMessageStore();
+  const {
+    selectedMessage,
+    analyzeMessage,
+    markAsReviewed,
+    analysisLoading,
+  } = useMessageStore();
 
   if (!selectedMessage) {
     return (
@@ -30,9 +35,16 @@ export default function MessageDetails() {
             Status
           </p>
 
-          <p className="mt-1 rounded-md bg-slate-100 px-3 py-2">
-            {selectedMessage.status}
-          </p>
+          <span
+            className={`mt-1 inline-block rounded-full px-3 py-1 text-sm font-medium ${
+              selectedMessage.status === "reviewed"
+                ? "bg-green-100 text-green-700"
+                : "bg-yellow-100 text-yellow-700"
+            }`}
+          >
+            {selectedMessage.status.charAt(0).toUpperCase() +
+              selectedMessage.status.slice(1)}
+          </span>
         </div>
 
         <div>
@@ -52,18 +64,28 @@ export default function MessageDetails() {
         </h3>
 
         <div className="mb-4 flex items-center justify-between">
-            <button
-                onClick={() => analyzeMessage(selectedMessage.id)}
-                disabled={analysisLoading}
-                className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-                {analysisLoading ? "Analyzing..." : "Analyze Message"}
-            </button>
+          <button
+            onClick={() => analyzeMessage(selectedMessage.id)}
+            disabled={analysisLoading}
+            className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {analysisLoading ? "Analyzing..." : "Analyze Message"}
+          </button>
+
+          <button
+            onClick={() => markAsReviewed(selectedMessage.id)}
+            disabled={selectedMessage.status === "reviewed"}
+            className="rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {selectedMessage.status === "reviewed"
+              ? "Reviewed"
+              : "Mark as Reviewed"}
+          </button>
         </div>
 
         <AnalysisPanel />
 
-        <div className="rounded-lg border mt-4 bg-slate-50 p-4 leading-relaxed">
+        <div className="mt-4 rounded-lg border bg-slate-50 p-4 leading-relaxed">
           {selectedMessage.text}
         </div>
       </div>

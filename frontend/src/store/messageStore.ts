@@ -3,7 +3,6 @@ import { create } from "zustand";
 import api from "../api/api";
 import type { Analysis, Message } from "../types/message";
 
-
 interface MessageStore {
   messages: Message[];
   selectedMessage: Message | null;
@@ -14,6 +13,7 @@ interface MessageStore {
 
   fetchMessages: () => Promise<void>;
   analyzeMessage: (messageId: number) => Promise<void>;
+  markAsReviewed: (messageId: number) => Promise<void>;
 
   selectMessage: (message: Message) => void;
 }
@@ -30,40 +30,57 @@ export const useMessageStore = create<MessageStore>((set) => ({
     set({ loading: true });
 
     try {
-        const response = await api.get<Message[]>("/messages");
+      const response = await api.get<Message[]>("/messages");
 
-        set({
-        messages: response.data,
-        });
+      set({
+        messages: response.data as unknown as Message[],
+      });
     } catch (error) {
-        console.error("Failed to fetch messages:", error);
+      console.error("Failed to fetch messages:", error);
     } finally {
-        set({
+      set({
         loading: false,
-        });
-    } 
+      });
+    }
   },
 
   analyzeMessage: async (messageId) => {
     set({
-        analysisLoading: true,
-        analysis: null,
+      analysisLoading: true,
+      analysis: null,
     });
 
-  try {
-    const response = await api.post<Analysis>(
-      `/messages/${messageId}/analyze`
-    );
+    try {
+      const response = await api.post<Analysis>(
+        `/messages/${messageId}/analyze`
+      );
 
-    set({
-      analysis: response.data,
-    });
-  } catch (error) {
-    console.error("Failed to analyze message:", error);
-  } finally {
-        set({
+      set({
+        analysis: response.data,
+      });
+    } catch (error) {
+      console.error("Failed to analyze message:", error);
+    } finally {
+      set({
         analysisLoading: false,
-        });
+      });
+    }
+  },
+
+  markAsReviewed: async (messageId) => {
+    try {
+      const response = await api.post<Message>(
+        `/messages/${messageId}/review`
+      );
+
+      set((state) => ({
+        selectedMessage: response.data,
+        messages: state.messages.map((message) =>
+          message.id === messageId ? response.data : message
+        ),
+      }));
+    } catch (error) {
+      console.error("Failed to mark message as reviewed:", error);
     }
   },
 
