@@ -1,31 +1,33 @@
 # AI-Powered Support Triage Dashboard
 
-An AI-assisted customer support triage dashboard that automatically analyzes incoming customer messages, classifies them, prioritizes them, generates suggested replies, and allows support agents to review and manage requests through a clean web interface.
+An AI-assisted customer support dashboard that helps support agents efficiently analyze, prioritize, and review customer support requests.
 
-The project is designed with a simple, maintainable architecture while following the assignment requirements, including support for both real AI and mock AI modes.
+The application automatically generates AI-powered summaries, categories, priorities, confidence scores, and suggested replies while allowing agents to review and manage requests through a clean React interface.
+
+The solution supports both **Mock AI** for local development and **Mistral AI** for real-world analysis, and is fully containerized using **Docker Compose** for simple deployment.
 
 ---
 
-## Features
+# Features
 
-### Backend
+## Backend
 
 * FastAPI REST API
 * SQLite database with SQLAlchemy ORM
 * AI-powered message analysis using Mistral AI
 * Mock AI mode for offline development
-* AI Provider abstraction for easy model switching
-* Structured JSON validation for AI responses
-* Review workflow for support agents
-* Error handling and validation
+* AI provider abstraction (Factory Pattern)
+* Structured AI response validation
+* Review workflow with timestamps
 * Environment-based configuration
+* Automatic database seeding
 
-### Frontend
+## Frontend
 
 * React + TypeScript
-* Material UI interface
+* Material UI
 * Message listing with pagination
-* Message details view
+* Message details panel
 * AI analysis panel
 * Editable suggested reply
 * Loading and error states
@@ -37,12 +39,12 @@ The project is designed with a simple, maintainable architecture while following
 
 ## Backend
 
+* Python 3.12
 * FastAPI
 * SQLAlchemy
 * SQLite
 * Pydantic
 * Uvicorn
-* Python 3.12
 
 ## Frontend
 
@@ -54,8 +56,33 @@ The project is designed with a simple, maintainable architecture while following
 
 ## AI
 
-* Mistral AI API
+* Mistral AI
 * Mock AI Provider
+
+## DevOps
+
+* Docker
+* Docker Compose
+
+---
+
+# Architecture
+
+```text
+                React + TypeScript
+                        │
+                 Axios REST Requests
+                        │
+                        ▼
+              FastAPI REST Backend
+                        │
+        ┌───────────────┴────────────────┐
+        │                                │
+ SQLite Database                 AI Provider Layer
+        │                    ┌────────────┴────────────┐
+        │                    │                         │
+        │               Mock Provider          Mistral Provider
+```
 
 ---
 
@@ -65,26 +92,23 @@ The project is designed with a simple, maintainable architecture while following
 candidate-test/
 │
 ├── backend/
-│   ├── ai/
-│   │   ├── providers/
-│   │   ├── factory.py
-│   │   └── prompts.py
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── db/
+│   │   ├── models/
+│   │   ├── prompts/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   ├── seed.py
+│   │   └── main.py
 │   │
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── database.py
-│   ├── main.py
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── .env.example
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── App.tsx
 │   ├── Dockerfile
 │   └── package.json
 │
@@ -95,18 +119,49 @@ candidate-test/
 
 ---
 
-# Getting Started
+# Quick Start (Docker)
 
-## Prerequisites
+The easiest way to run the application is with Docker Compose.
 
-* Python 3.12+
-* Node.js 22+
-* npm
-* Docker (optional)
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd candidate-test
+```
+
+Configure the backend environment:
+
+```env
+AI_MODE=mock
+MISTRAL_API_KEY=your_api_key
+```
+
+Start the application:
+
+```bash
+docker compose up --build
+```
+
+Access the application:
+
+| Service     | URL                        |
+| ----------- | -------------------------- |
+| Frontend    | http://localhost:5173      |
+| Backend API | http://localhost:8000      |
+| Swagger UI  | http://localhost:8000/docs |
+
+Stop the application:
+
+```bash
+docker compose down
+```
 
 ---
 
-# Backend Setup
+# Local Development
+
+## Backend
 
 ```bash
 cd backend
@@ -116,36 +171,17 @@ python -m venv venv
 # Windows
 venv\Scripts\activate
 
-# Linux / macOS
+# Linux/macOS
 source venv/bin/activate
 
 pip install -r requirements.txt
-```
 
-Create a `.env` file:
-
-```env
-AI_MODE=mock
-
-# Required only when using Mistral
-MISTRAL_API_KEY=your_api_key
-```
-
-Run the backend:
-
-```bash
-uvicorn main:app --reload
-```
-
-Backend runs at:
-
-```text
-http://localhost:8000
+uvicorn app.main:app --reload
 ```
 
 ---
 
-# Frontend Setup
+## Frontend
 
 ```bash
 cd frontend
@@ -155,96 +191,81 @@ npm install
 npm run dev
 ```
 
-Frontend runs at:
-
-```text
-http://localhost:5173
-```
-
----
-
-# Docker
-
-Build and start both services:
-
-```bash
-docker compose up --build
-```
-
-Stop containers:
-
-```bash
-docker compose down
-```
-
 ---
 
 # API Endpoints
 
-| Method | Endpoint                 | Description                |
-| ------ | ------------------------ | -------------------------- |
-| GET    | `/messages`              | Retrieve all messages      |
-| GET    | `/messages/{id}`         | Retrieve message details   |
-| POST   | `/messages/{id}/analyze` | Analyze a message using AI |
-| POST   | `/messages/{id}/review`  | Mark a message as reviewed |
+| Method | Endpoint                 | Description                    |
+| ------ | ------------------------ | ------------------------------ |
+| GET    | `/messages`              | Retrieve all customer messages |
+| GET    | `/messages/{id}`         | Retrieve message details       |
+| POST   | `/messages/{id}/analyze` | Analyze a message using AI     |
+| POST   | `/messages/{id}/review`  | Mark a message as reviewed     |
+
+Interactive API documentation is available at:
+
+```text
+http://localhost:8000/docs
+```
 
 ---
 
 # AI Modes
 
-The application supports two AI modes.
-
 ## Mock Mode
-
-Used for development and testing.
 
 ```env
 AI_MODE=mock
 ```
 
-Returns deterministic responses without making external API calls.
+Uses deterministic responses without external API calls.
+
+Recommended for development and testing.
 
 ---
 
-## Mistral AI Mode
-
-Uses the Mistral API for real AI analysis.
+## Mistral Mode
 
 ```env
 AI_MODE=mistral
+
 MISTRAL_API_KEY=your_api_key
 ```
+
+Uses the Mistral API to generate real AI analysis.
 
 ---
 
 # AI Response Format
 
-The AI is instructed to return structured JSON containing:
+The AI model is instructed to return structured JSON.
+
+Example:
 
 ```json
 {
-  "summary": "...",
-  "category": "...",
-  "priority": "...",
-  "confidence": 0.95,
-  "suggested_reply": "..."
+  "summary": "Customer is unable to log in.",
+  "category": "Authentication",
+  "priority": "High",
+  "confidence": 0.94,
+  "suggested_reply": "Please reset your password using the Forgot Password option..."
 }
 ```
 
-Responses are validated before being accepted by the application.
+Every response is validated before being stored or returned.
 
 ---
 
 # Seed Data
 
-The project includes 16 realistic customer support messages covering various scenarios, including:
+The application automatically seeds the database with **16 realistic customer support messages** covering scenarios such as:
 
 * Billing issues
-* Login problems
-* Technical bugs
+* Login failures
 * Refund requests
-* Security concerns
+* Technical bugs
 * Feature requests
+* Security concerns
 * General inquiries
 * Customer complaints
 
@@ -252,60 +273,72 @@ The project includes 16 realistic customer support messages covering various sce
 
 # Error Handling
 
-The application includes:
+The application gracefully handles:
 
-* API exception handling
-* Invalid AI response validation
-* Missing message handling
-* Network error handling
-* Loading indicators
-* User-friendly error messages
+* Invalid message IDs
+* Database failures
+* Network failures
+* Invalid AI responses
+* AI provider errors
+
+Loading indicators and user-friendly messages are displayed whenever possible.
 
 ---
 
 # Design Decisions
 
-* SQLite was selected for simplicity and portability.
-* FastAPI provides lightweight, high-performance REST APIs.
-* AI providers are abstracted behind a common interface, allowing easy replacement of the underlying model.
-* Mock mode enables development without requiring external AI services.
-* AI responses are validated instead of being trusted directly.
-* The architecture intentionally avoids unnecessary complexity while remaining extensible.
+Some notable design choices include:
+
+* FastAPI for lightweight, high-performance APIs.
+* SQLite for portability and simple deployment.
+* SQLAlchemy ORM for clean data access.
+* AI Provider abstraction using the Factory Pattern.
+* Structured AI response validation.
+* Docker Compose for reproducible development and deployment.
+* Clear separation of frontend, backend, persistence, and AI layers.
+
+The implementation intentionally avoids unnecessary complexity while remaining extensible.
 
 ---
 
 # Assumptions
 
-* AI responses follow the required JSON structure.
-* Reviewing a message updates its status and review timestamp.
-* Batch processing is outside the current scope.
-* Authentication is intentionally omitted as it is an optional enhancement.
+* AI responses follow the required JSON schema.
+* Reviewing a message updates its review status and timestamp.
+* Authentication is outside the assignment scope.
+* Batch processing is not required.
 
 ---
 
 # Future Improvements
 
-* Backend unit tests
-* Frontend tests
+* User authentication
 * Batch message analysis
 * Retry logic for AI requests
-* Authentication
+* Background workers
 * Rate limiting
 * Audit logging
-* Background job processing
-* Support for additional LLM providers
+* Unit and integration testing
+* PostgreSQL support
+* Additional LLM providers
 
 ---
 
 # Environment Variables
 
-| Variable          | Description            |
-| ----------------- | ---------------------- |
-| `AI_MODE`         | `mock` or `mistral`    |
-| `MISTRAL_API_KEY` | API key for Mistral AI |
+| Variable          | Description         |
+| ----------------- | ------------------- |
+| `AI_MODE`         | `mock` or `mistral` |
+| `MISTRAL_API_KEY` | Mistral API key     |
+
+---
+
+# Screenshots
+
+*Add screenshots of the dashboard and AI analysis here (optional).*
 
 ---
 
 # License
 
-This project was developed as part of a technical assessment for an AI-powered Support Triage Dashboard.
+This project was developed as part of a technical assessment for an AI-Powered Support Triage Dashboard.

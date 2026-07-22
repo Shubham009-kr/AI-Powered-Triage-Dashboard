@@ -4,67 +4,72 @@
 
 ## Overview
 
-The objective of this project was to build an AI-assisted support triage dashboard that enables customer support agents to efficiently manage incoming support requests.
+The objective of this project was to build an AI-assisted support triage dashboard that helps customer support agents efficiently analyze and review incoming support requests.
 
-The application allows agents to:
+The application enables agents to:
 
-* View customer messages
+* View customer support messages
 * Analyze messages using AI
 * Automatically generate summaries, categories, priorities, confidence scores, and suggested replies
-* Review and manage analyzed messages
+* Review AI-generated analysis before responding
+* Track reviewed messages
 
-The implementation focuses on simplicity, maintainability, and reliability while satisfying the assignment requirements without introducing unnecessary architectural complexity.
+The implementation emphasizes simplicity, maintainability, and reliability while satisfying all assignment requirements without introducing unnecessary architectural complexity.
 
 ---
 
 # Architecture
 
-The application follows a simple client-server architecture.
+The application follows a lightweight client-server architecture.
 
 ```text
-React Frontend
-        │
-        │ REST API
-        ▼
-FastAPI Backend
-        │
-        ├── SQLite Database
-        │
-        └── AI Provider Layer
-              ├── Mock Provider
-              └── Mistral Provider
+                React + TypeScript
+                        │
+                 Axios REST Requests
+                        │
+                        ▼
+              FastAPI REST Backend
+                        │
+        ┌───────────────┴────────────────┐
+        │                                │
+ SQLite Database                 AI Provider Layer
+        │                    ┌────────────┴────────────┐
+        │                    │                         │
+        │               Mock Provider          Mistral Provider
 ```
 
-This separation keeps the frontend independent from business logic while allowing the backend to manage data persistence and AI interactions.
+The frontend is responsible only for presentation and user interactions, while the backend handles business logic, data persistence, and AI integration.
 
 ---
 
 # Backend Design
 
-The backend is organized into clear functional modules.
+The backend is organized into modular layers with clear separation of responsibilities.
 
-* **Routes** expose REST endpoints.
+* **API Routes** expose REST endpoints.
 * **Services** contain business logic.
 * **Models** define the database schema.
-* **AI Providers** encapsulate interactions with different AI implementations.
-* **Factory Pattern** selects the active AI provider based on configuration.
+* **Schemas** validate request and response data.
+* **Database Layer** manages persistence through SQLAlchemy.
+* **AI Providers** encapsulate communication with different AI implementations.
+* **Factory Pattern** selects the active AI provider using configuration.
 
-This structure keeps responsibilities separated and makes the project easier to extend and maintain.
+This modular structure improves readability, maintainability, and future extensibility.
 
 ---
 
 # AI Provider Abstraction
 
-Instead of directly calling the AI model from API endpoints, an abstraction layer was introduced.
+Rather than coupling API endpoints directly to an LLM, the application introduces an AI provider abstraction.
 
 Benefits include:
 
-* Switching between Mock AI and Mistral AI without changing application code.
+* Switching between Mock AI and Mistral AI without modifying application code.
 * Easier testing.
 * Cleaner separation of concerns.
-* Future support for additional LLM providers.
+* Simplified addition of future providers such as OpenAI, Claude, or Gemini.
 
-The active provider is selected using the environment variable:
+The active provider is configured through an environment variable:
 
 ```text
 AI_MODE=mock
@@ -76,13 +81,15 @@ or
 AI_MODE=mistral
 ```
 
+This allows the same application code to operate in development, testing, and production environments.
+
 ---
 
 # Prompt Engineering
 
-The AI receives a structured prompt instructing it to analyze customer messages and return structured JSON.
+Customer messages are analyzed using a structured prompt that instructs the language model to return structured JSON instead of free-form text.
 
-The expected output includes:
+Each response includes:
 
 * Summary
 * Category
@@ -90,17 +97,17 @@ The expected output includes:
 * Confidence Score
 * Suggested Reply
 
-Using structured JSON instead of free-form text simplifies parsing and reduces ambiguity.
+Using structured JSON significantly simplifies parsing and reduces ambiguity.
 
 ---
 
 # AI Response Validation
 
-One important design decision was **not trusting AI responses directly**.
+AI-generated responses are never trusted directly.
 
-Every AI response is validated before it is accepted.
+Each response is validated before being accepted by the application.
 
-The backend verifies that the response contains:
+The backend verifies the presence and structure of:
 
 * summary
 * category
@@ -108,22 +115,24 @@ The backend verifies that the response contains:
 * confidence
 * suggested_reply
 
-If parsing or validation fails, an appropriate error is returned instead of storing invalid data.
+Invalid or malformed AI responses are rejected and appropriate errors are returned instead of storing unreliable data.
 
-This approach improves reliability and prevents malformed AI outputs from affecting the application.
+This defensive approach improves application reliability and protects downstream components.
 
 ---
 
 # Database Design
 
-SQLite was selected because:
+SQLite was selected because it satisfies the assignment requirements while keeping deployment simple.
 
-* It satisfies assignment requirements.
-* It requires no external database server.
-* It simplifies local setup.
-* It is sufficient for the project's scale.
+Reasons for choosing SQLite:
 
-SQLAlchemy ORM is used for database interaction to provide clean models and avoid raw SQL queries.
+* Zero external dependencies
+* Lightweight and portable
+* Simple local development
+* Appropriate for the expected project scale
+
+SQLAlchemy ORM is used to manage persistence through Python models rather than raw SQL.
 
 The database stores:
 
@@ -135,125 +144,151 @@ The database stores:
 
 # Frontend Design
 
-The frontend is built with React and TypeScript.
+The frontend is implemented using React and TypeScript.
 
-The interface is intentionally simple and focuses on the support agent workflow.
+The interface follows a straightforward support-agent workflow and keeps the user focused on processing customer messages efficiently.
 
-Main components include:
+Main interface components include:
 
 * Message List
 * Message Details
 * AI Analysis Panel
 
-The workflow is:
+Typical workflow:
 
-1. Select a message.
+1. Select a customer message.
 2. Analyze it using AI.
 3. Review the generated analysis.
-4. Edit the suggested reply if needed.
+4. Edit the suggested reply if necessary.
 5. Mark the message as reviewed.
 
 ---
 
 # User Experience
 
-To improve usability, the interface includes:
+Several usability improvements were included to provide a smooth workflow.
+
+These include:
 
 * Loading indicators during AI analysis
-* Loading indicators during review actions
-* Error messages for failed requests
-* Pagination for message browsing
-* Status badges for reviewed and pending messages
-* Editable suggested reply before sending
+* Loading indicators during review operations
+* Error handling for failed requests
+* Pagination for browsing messages
+* Status badges indicating reviewed and pending messages
+* Editable suggested replies before sending
 
-These features provide clear feedback and improve the overall user experience.
+These additions improve clarity while keeping the interface intentionally simple.
 
 ---
 
 # Error Handling
 
-Error handling is implemented throughout the application.
+Error handling is implemented across the application.
 
-Examples include:
+Handled scenarios include:
 
 * Invalid message IDs
-* AI service failures
+* AI provider failures
 * Invalid AI responses
-* Database errors
+* Database exceptions
 * Network request failures
 
-The goal is to prevent application crashes while providing meaningful feedback to users.
+The goal is graceful failure with meaningful feedback rather than unexpected application crashes.
 
 ---
 
-# Mock Mode
+# Mock AI Mode
 
-The assignment specifically requested support for a mock AI mode.
+To satisfy the assignment requirements, a dedicated Mock AI provider was implemented.
 
-A dedicated Mock Provider was implemented to simulate AI responses without requiring external API calls.
+This provider simulates AI analysis without making external API requests.
 
-Benefits include:
+Advantages include:
 
 * Offline development
-* Consistent testing
+* Deterministic testing
 * No API costs
-* Reliable demonstrations
+* Consistent demonstrations
+
+Developers can switch between Mock and Mistral AI using a single configuration change.
+
+---
+
+# Docker Support
+
+The project is fully containerized using Docker and Docker Compose.
+
+Separate containers are provided for:
+
+* FastAPI backend
+* React frontend
+
+Docker Compose manages service startup, networking, environment variables, and port mapping, allowing the complete application to be started with a single command.
+
+Containerization provides:
+
+* Consistent development environments
+* Simplified setup
+* Easy deployment
+* Reduced dependency issues
 
 ---
 
 # Design Trade-offs
 
-The project intentionally avoids unnecessary complexity.
+The solution intentionally avoids unnecessary complexity.
 
-Features that were intentionally not introduced include:
+Features deliberately excluded include:
 
 * Microservices
 * Background workers
 * Message queues
 * Authentication
 * Multiple databases
-* Caching
+* Distributed caching
 * Complex state management
 
-These additions would increase maintenance effort without significantly improving the assignment solution.
+While these technologies are valuable for larger systems, they would increase complexity without providing significant benefits for this assignment.
 
-Instead, the focus remained on delivering a clean, understandable, and maintainable implementation.
+Instead, the focus remained on building a clean, maintainable, and reliable implementation.
 
 ---
 
 # Bonus Features Implemented
 
-The project includes several optional enhancements:
+Additional features beyond the minimum requirements include:
 
-* Database persistence using SQLite
+* SQLite database persistence
 * AI confidence score
-* Review status tracking with timestamp
-
-Additional optional features can be added in future iterations if required.
+* Review status tracking
+* Review timestamp
+* Docker containerization
+* Environment-based AI provider switching
 
 ---
 
 # Scalability Considerations
 
-Although intentionally simple, the architecture allows future improvements such as:
+Although intentionally lightweight, the architecture supports future enhancements such as:
 
 * Additional AI providers
-* Authentication
-* Batch message analysis
-* Retry logic for AI requests
+* Authentication and authorization
+* Background AI processing
+* Retry mechanisms
 * Audit logging
-* Background job processing
-* Unit and integration testing
+* Batch message analysis
 * Rate limiting
+* Unit and integration testing
+* Migration to PostgreSQL or another production database
 
-The provider abstraction and modular backend structure make these enhancements straightforward to implement.
+The modular backend and provider abstraction make these enhancements straightforward.
 
 ---
 
 # Conclusion
 
-This implementation prioritizes simplicity, reliability, and maintainability while satisfying the core assignment requirements.
+This implementation prioritizes simplicity, reliability, maintainability, and ease of deployment.
 
-The architecture is intentionally lightweight, validates AI-generated content before use, supports both mock and real AI providers, and delivers a clean user experience without introducing unnecessary complexity.
+The application separates presentation, business logic, persistence, and AI integration into well-defined layers, validates AI-generated content before use, supports both mock and real AI providers, and is fully containerized using Docker.
 
-The resulting solution demonstrates practical software engineering principles while remaining easy to understand, extend, and deploy.
+The result is a clean, extensible, and production-inspired solution that fulfills the assignment requirements while remaining easy to understand, develop, and deploy.
