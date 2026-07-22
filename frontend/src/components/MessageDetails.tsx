@@ -1,7 +1,8 @@
 import { useMessageStore } from "../store/messageStore";
+import AnalysisPanel from "./AnalysisPanel";
 
 export default function MessageDetails() {
-  const { selectedMessage } = useMessageStore();
+  const { selectedMessage, analyzeMessage, analysisLoading, } = useMessageStore();
 
   if (!selectedMessage) {
     return (
@@ -50,7 +51,19 @@ export default function MessageDetails() {
           Original Message
         </h3>
 
-        <div className="rounded-lg border bg-slate-50 p-4 leading-relaxed">
+        <div className="mb-4 flex items-center justify-between">
+            <button
+                onClick={() => analyzeMessage(selectedMessage.id)}
+                disabled={analysisLoading}
+                className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+                {analysisLoading ? "Analyzing..." : "Analyze Message"}
+            </button>
+        </div>
+
+        <AnalysisPanel />
+
+        <div className="rounded-lg border mt-4 bg-slate-50 p-4 leading-relaxed">
           {selectedMessage.text}
         </div>
       </div>
