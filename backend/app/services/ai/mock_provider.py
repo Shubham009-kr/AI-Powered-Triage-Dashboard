@@ -8,8 +8,8 @@ class MockAIProvider(AIProvider):
 
         return AIAnalysisResponse(
             summary="Customer payment issue.",
-            category="Billing",
-            priority="High",
+            category="billing",
+            priority="high",
             confidence=0.97,
             suggested_reply=(
                 "We're sorry about the inconvenience. "

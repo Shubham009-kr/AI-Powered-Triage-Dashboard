@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+
+# SQLite database
+*.db
+support_dashboard.db
+
+# Uvicorn / development
+*.log
+*.pid
+
+# IDE/editor
+.vscode/
+*.swp
+*.swo
+*.idea/
+
+# OS generated
+.DS_Store
+Thumbs.db

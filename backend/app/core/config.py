@@ -12,8 +12,8 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite:///./support_dashboard.db"
 
-    AI_MODE: str = "mock"
-    MISTRAL_API_KEY: str = ""
+    AI_MODE: str 
+    MISTRAL_API_KEY: str 
     MISTRAL_MODEL: str = "mistral-small-latest"
     AI_TIMEOUT: int = 30
     AI_MAX_RETRIES: int = 2
