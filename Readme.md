@@ -333,12 +333,6 @@ The implementation intentionally avoids unnecessary complexity while remaining e
 
 ---
 
-# Screenshots
-
-*Add screenshots of the dashboard and AI analysis here (optional).*
-
----
-
 # License
 
 This project was developed as part of a technical assessment for an AI-Powered Support Triage Dashboard.
